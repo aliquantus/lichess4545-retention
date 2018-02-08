@@ -2,5 +2,7 @@
 """configuration file"""
 
 rawDataPath = "./rawdata"
-dbname = "./databases/dbtest.db"
+dbfolder = "./databases"
+dbname = dbfolder + "dbtest.db"
 last_season = 10
+subdir_figures = "./figures"
