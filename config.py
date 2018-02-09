@@ -3,6 +3,5 @@
 
 rawDataPath = "./rawdata"
 dbfolder = "./databases"
-dbname = dbfolder + "dbtest.db"
-last_season = 10
+dbname = dbfolder + "/database.db"
 subdir_figures = "./figures"
