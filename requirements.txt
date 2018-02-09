@@ -1,0 +1,5 @@
+numpy
+os
+json
+matplotlib
+peewee
