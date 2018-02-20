@@ -17,7 +17,7 @@ def retention(finalSeason):
     """Plots proportion of players who stay for the next season"""
     print("Plotting retention diagram...")
     x = range(1, finalSeason)
-    y = [np.true_divide(countCommonPlayers(season, season + 1), countPlayersInSeason(season)) for season in range(1, finalSeason)]
+    y = [np.true_divide(countCommonPlayers(season, season + 1), countPlayersInSeason(season)) for season in range(1, finalSeason)]  # fix this, only reason why np is dependency
     plt.xlim(xmin=1, xmax=finalSeason - 1)
     plt.xticks(range(1, finalSeason))
     plt.yticks(np.arange(0, 1.1, 0.1))
@@ -29,12 +29,13 @@ def retention(finalSeason):
     plt.plot(x, y, linewidth=3)
     # plt.show()
     plt.savefig(os.path.join(subdir_figures, "retention_{}.png".format(finalSeason)))
+    plt.close()
 
 
 def participation(finalSeason):
     """Plots participation history of players in finalSeason"""
     print("Plotting participation diagram...")
-    players = [player for player in Player.select() if playerInSeason(player.id, finalSeason)]  # real stupid query...
+    players = [player for player in Player.select() if playerInSeason(player, finalSeason)]  # real stupid query...
     nPlayers = len(players)
     A = []
     for player in players:
@@ -96,8 +97,45 @@ def evolution(finalSeason):
     plt.close()
 
 
+def consistency(finalSeason):
+    """plots the number of seasons the players in a season have played"""
+    print("Plotting consistency diagram...")
+    seasons = range(1, finalSeason + 1)
+    A = []
+    for player in Player.select():
+        A.extend([playerInSeason(player, season) for season in seasons])  # didn't manage to get np.fromfunction to work, much easier?
+    B = np.reshape(A, newshape=(countPlayers(), finalSeason))
+    V = np.zeros(shape=(finalSeason, finalSeason))
+
+    for p in range(countPlayers()):
+        for season in seasons:
+            if B[p, season - 1] == 1:  # -1 due to indexing
+                V[season - 1, sum(B[p, 0:season]) - 1] += 1  # -1 due to indexing
+
+    data = V[:, 0]
+    for season in seasons:
+        plt.plot(seasons[season - 1:finalSeason], data[season - 1:finalSeason], linewidth=2)
+        if season < max(seasons):
+            data = data + V[:, season]
+
+    y1 = [len(findPlayers(season)) for season in range(1, finalSeason + 1)]
+    plt.plot(seasons, y1, color="black", linewidth=4)
+
+    plt.xlim(xmin=1, xmax=finalSeason)
+    plt.xticks(range(1, finalSeason + 1))
+    #plt.yticks(np.arange(0, 1.1, 0.1))
+    plt.ylim(ymin=0)
+    plt.tick_params(top='off', right='off')
+    plt.xlabel("Season")
+    plt.ylabel("Number of players")
+    plt.title("How many seasons have the players played; by season")
+    plt.savefig(os.path.join(subdir_figures, "consistency_{}.png".format(finalSeason)))
+    plt.close()
+
+
 def plot(finalSeason):
     evolution(finalSeason)
     participation(finalSeason)
     staircase(finalSeason)
     retention(finalSeason)
+    consistency(finalSeason)

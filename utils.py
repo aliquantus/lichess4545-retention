@@ -32,7 +32,7 @@ def isDownloaded(season):
 
 
 def retrieveData(season):
-    """Request data from lichess4545 api and store it (.json) in subdir_path"""
+    """Request data from lichess4545 api and store it (.json) in rawDataPath"""
     print("Downloading data from season {}".format(season))
     data = requests.get("https://www.lichess4545.com/api/get_season_games/?league=team4545&season={}".format(season))  # possibly include a safecheck here, should crash if season wrong?
     with open(os.path.join(rawDataPath, "season_{}.json".format(season)), "w") as f:
@@ -41,7 +41,7 @@ def retrieveData(season):
 
 def raw2db():
     """Finds all raw .jsons and inputs them to the database"""
-    jsonPaths = [os.path.join(rawDataPath, file) for file in os.listdir(rawDataPath) if file.endswith(".json")]
+    jsonPaths = sorted([os.path.join(rawDataPath, file) for file in os.listdir(rawDataPath) if file.endswith(".json")])  # sort to ensure season ids match season numbers
     for path in jsonPaths:
         print("Currently handling {}".format(path))
         with open(path, "r") as f:
@@ -61,6 +61,14 @@ def json2db(jsonData):
         # create player rows
         white_player, _ = Player.get_or_create(username=game["white"])
         black_player, _ = Player.get_or_create(username=game["black"])
+        try:
+            white_player.seasons.add(season)
+        except:
+            pass
+        try:
+            black_player.seasons.add(season)
+        except:
+            pass
 
         # create game row
         Game.get_or_create(
@@ -77,16 +85,9 @@ def json2db(jsonData):
 
 def update(seasons):  # this is the main function of this module!!
     """Updates the DB with all the raw data"""
-    # create the necessary folders
-    if not os.path.exists(rawDataPath):
-        createFolder(path=rawDataPath)
-    if not os.path.exists(dbfolder):
-        createFolder(path=dbfolder)
     if not os.path.exists(path=dbname):
-        db.create_tables([Season, Game, Player])
+        db.create_tables([Season, Game, Player, Season.players.get_through_model()])
         print("Created a database...")
-    if not os.path.exists(subdir_figures):
-        createFolder(path=subdir_figures)
     # check if all data in DB already, then skip ahead
     if Game.select().where(Game.season == max(seasons)).exists():
         print 'Database already up to date...'

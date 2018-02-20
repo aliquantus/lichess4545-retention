@@ -14,7 +14,7 @@ db = SqliteDatabase(dbname)
 
 class BaseModel(Model):
     class Meta:
-        database = db  # This model uses the "people.db" database.
+        database = db
 
 
 class Player(BaseModel):
@@ -29,7 +29,7 @@ class Season(BaseModel):
     id = PrimaryKeyField()
     number = IntegerField(unique=True)
     games = IntegerField(default=0)
-    players = TextField(null=True)
+    players = ManyToManyField(Player, backref='seasons')
 
 
 class Game(BaseModel):
@@ -47,6 +47,6 @@ class Game(BaseModel):
 
 if __name__ == "__main__":
     try:
-        db.create_tables([Season, Game, Player])
+        db.create_tables([Season, Game, Player, Season.players.get_through_model()])
     except:
         print("There already exists a database with this name!")

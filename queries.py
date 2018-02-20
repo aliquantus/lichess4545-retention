@@ -14,8 +14,7 @@ def countPlayers():
 
 
 def findSeasons(player):
-    """Returns a sorted list of all the seasons (ints) the player (obj) played in"""
-    return sorted(list(set([game.season for game in Game.select().where((Game.white == player) | (Game.black == player))])))
+    return sorted([season.number for season in player.seasons])
 
 
 def proportionPlayed(player):
@@ -29,26 +28,33 @@ def gamesPlayed(player):
 
 def playerInSeason(player, season):
     """Returns 1 or 0 depending on if player (obj) played in season (int)"""
-    if season in findSeasons(player):  # this is slow...
+    if season in findSeasons(player):
         return 1
     else:
         return 0
 
 
+def test(season, val):
+    """Return the number of players who played val seasons before season"""
+    number = season
+    season = Season.get(Season.id == number)  # objectify
+    print number
+    print season
+    quit()
+    return Player.select().where(len(set([season for season in Player.seasons]) & set(range(1, number)) == val)).count()
+
+
 def findPlayers(season):
     """Returns list of players (objs) which played season (int)"""
-    result = []
-    for player in Player.select():
-        if season in findSeasons(player):
-            result.append(player)
-    return result
+    return [player for player in Season.get(Season.id == season).players]
 
 
 def countPlayersInSeason(season):
     """Returns number of players for seasons"""
-    return len(findPlayers(season=season))
+    return Season.get(Season.id == season).players.count()
 
 
+# this can be done more cleverly
 def findNewPlayers(season):
     """Returns list of players (objs) which played season (int) but no previous season"""
     result = []
