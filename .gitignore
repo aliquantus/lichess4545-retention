@@ -1,5 +1,7 @@
 *.pyc
 *.pyo
-*/*
 .gitignore~
 *~
+./databases/*
+./figures/*
+./rawdata/*
