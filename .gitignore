@@ -2,6 +2,6 @@
 *.pyo
 .gitignore~
 *~
-./databases/*
-./figures/*
-./rawdata/*
+databases/*
+figures/*
+rawdata/*
